@@ -1,0 +1,221 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String             @id @default(cuid())
+  personalId             String?            @unique
+  username               String             @unique
+  email                  String             @unique
+  passwordHash           String
+  displayName            String
+  avatarUrl              String?            @db.Text
+  avatarObjectKey         String?            @db.Text
+  bio                    String?
+  privateAlbumsOnly      Boolean            @default(false)
+  activityStatusActive   Boolean            @default(true)
+  locationTaggingActive  Boolean            @default(true)
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  albums                 Album[]
+  photos                 Photo[]
+  sentInvitations        FriendInvitation[] @relation("sentFriendInvitations")
+  receivedInvitations    FriendInvitation[] @relation("receivedFriendInvitations")
+  invitationPairsAsUserA FriendInvitation[] @relation("friendInvitationPairUserA")
+  invitationPairsAsUserB FriendInvitation[] @relation("friendInvitationPairUserB")
+  friendshipsAsUserA     Friendship[]       @relation("friendshipsAsUserA")
+  friendshipsAsUserB     Friendship[]       @relation("friendshipsAsUserB")
+  ownedSharedSpaces      SharedSpace[]      @relation("sharedSpaceOwner")
+  sharedMemberships      SharedSpaceMember[]
+  sharedPhotos           SharedSpacePhoto[] @relation("sharedSpacePhotoSharedBy")
+  deletedTrashItems      TrashItem[]        @relation("trashItemDeletedBy")
+  sentMessages           Message[]          @relation("sentMessages")
+  receivedMessages       Message[]          @relation("receivedMessages")
+
+  @@map("users")
+}
+
+model EmailVerificationCode {
+  id        String    @id @default(cuid())
+  email     String
+  codeHash  String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email, createdAt])
+  @@map("email_verification_codes")
+}
+
+model Album {
+  id                 String     @id @default(cuid())
+  ownerId            String
+  title              String
+  description        String?
+  coverUrl           String?    @db.Text
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  owner              User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  photos             Photo[]
+  originalTrashItems TrashItem[] @relation("trashItemOriginalAlbum")
+
+  @@index([ownerId])
+  @@map("albums")
+}
+
+model Photo {
+  id              String             @id @default(cuid())
+  albumId         String
+  uploadedById    String
+  title           String?
+  aiTitle         String?
+  location        String?
+  objectKey       String
+  url             String             @db.Text
+  fileName        String
+  mimeType        String
+  size            Int
+    width           Int?
+    height          Int?
+    isFavorite      Boolean            @default(false)
+    createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  album           Album              @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  uploadedBy      User               @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  trashItem       TrashItem?
+  sharedRelations SharedSpacePhoto[]
+
+  @@index([albumId])
+  @@index([uploadedById])
+  @@map("photos")
+}
+
+model TrashItem {
+  id              String    @id @default(cuid())
+  photoId         String    @unique
+  originalAlbumId String
+  deletedById     String
+  expiresAt       DateTime
+  createdAt       DateTime  @default(now())
+  photo           Photo     @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  originalAlbum   Album     @relation("trashItemOriginalAlbum", fields: [originalAlbumId], references: [id], onDelete: Cascade)
+  deletedBy       User      @relation("trashItemDeletedBy", fields: [deletedById], references: [id], onDelete: Cascade)
+
+  @@index([originalAlbumId])
+  @@index([deletedById])
+  @@map("trash_items")
+}
+
+model FriendInvitation {
+  id          String                 @id @default(cuid())
+  senderId    String
+  receiverId  String
+  pairUserAId String
+  pairUserBId String
+  status      FriendInvitationStatus @default(PENDING)
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+  sender      User                   @relation("sentFriendInvitations", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver    User                   @relation("receivedFriendInvitations", fields: [receiverId], references: [id], onDelete: Cascade)
+  pairUserA   User                   @relation("friendInvitationPairUserA", fields: [pairUserAId], references: [id], onDelete: Cascade)
+  pairUserB   User                   @relation("friendInvitationPairUserB", fields: [pairUserBId], references: [id], onDelete: Cascade)
+
+  @@unique([pairUserAId, pairUserBId])
+  @@index([receiverId])
+  @@index([pairUserBId])
+  @@map("friend_invitations")
+}
+
+model Friendship {
+  id        String   @id @default(cuid())
+  userAId   String
+  userBId   String
+  createdAt DateTime @default(now())
+  userA     User     @relation("friendshipsAsUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB     User     @relation("friendshipsAsUserB", fields: [userBId], references: [id], onDelete: Cascade)
+
+  @@unique([userAId, userBId])
+  @@index([userBId])
+  @@map("friendships")
+}
+
+model SharedSpace {
+  id          String             @id @default(cuid())
+  ownerId     String
+  title       String
+  description String?
+  coverUrl    String?             @db.Text
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  owner       User               @relation("sharedSpaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members     SharedSpaceMember[]
+  photos      SharedSpacePhoto[]
+
+  @@index([ownerId])
+  @@map("shared_spaces")
+}
+
+model SharedSpaceMember {
+  id            String                  @id @default(cuid())
+  sharedSpaceId String
+  userId        String
+  status        SharedSpaceMemberStatus @default(INVITED)
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+  sharedSpace   SharedSpace             @relation(fields: [sharedSpaceId], references: [id], onDelete: Cascade)
+  user          User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sharedSpaceId, userId])
+  @@index([userId])
+  @@map("shared_space_members")
+}
+
+model SharedSpacePhoto {
+  id            String      @id @default(cuid())
+  sharedSpaceId String
+  photoId       String
+  sharedById    String
+  createdAt     DateTime    @default(now())
+  sharedSpace   SharedSpace @relation(fields: [sharedSpaceId], references: [id], onDelete: Cascade)
+  photo         Photo       @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  sharedBy      User        @relation("sharedSpacePhotoSharedBy", fields: [sharedById], references: [id], onDelete: Cascade)
+
+  @@unique([sharedSpaceId, photoId])
+  @@index([photoId])
+  @@index([sharedById])
+  @@map("shared_space_photos")
+}
+
+model Message {
+  id         String    @id @default(cuid())
+  senderId   String
+  receiverId String
+  content    String    @db.Text
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+  sender     User      @relation("sentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver   User      @relation("receivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([senderId, receiverId, createdAt])
+  @@index([receiverId, senderId, createdAt])
+  @@map("messages")
+}
+
+enum FriendInvitationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+enum SharedSpaceMemberStatus {
+  INVITED
+  ACTIVE
+  LEFT
+  REMOVED
+}

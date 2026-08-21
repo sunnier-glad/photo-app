@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  
+  --color-surface: #fff8f5;
+  --color-surface-dim: #e1d8d4;
+  --color-surface-bright: #fff8f5;
+  --color-surface-lowest: #ffffff;
+  --color-surface-low: #fbf2ed;
+  --color-surface-container: #f5ece7;
+  --color-surface-high: #efe6e2;
+  --color-surface-highest: #e9e1dc;
+  --color-on-surface: #1e1b18;
+  --color-on-surface-variant: #454742;
+  --color-inverse-surface: #34302c;
+  --color-inverse-on-surface: #f8efea;
+  --color-outline: #767872;
+  --color-outline-variant: #c6c7c0;
+  --color-surface-tint: #5e5e5c;
+  
+  --color-primary: #5e5e5c;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #fdfbf7;
+  --color-on-primary-container: #747471;
+  --color-inverse-primary: #c8c6c3;
+  
+  --color-secondary: #88503a;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #ffb599;
+  --color-on-secondary-container: #7a442f;
+  
+  --color-tertiary: #655d51;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #fffaf8;
+  --color-on-tertiary-container: #7b7266;
+  
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  
+  --color-background: #fff8f5;
+  --color-on-background: #1e1b18;
+  
+  --radius-sm: 0.5rem;
+  --radius-md: 1.5rem;
+  --radius-lg: 2rem;
+  --radius-xl: 3rem;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-background);
+  color: var(--color-on-background);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Custom scrollbars that fit the warm minimalism aesthetic */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-highest);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-outline-variant);
+}
+
+.glass-nav {
+  background: rgba(253, 251, 247, 0.65);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ambient-shadow {
+  box-shadow: 0 12px 40px rgba(45, 41, 38, 0.04);
+}

@@ -1,0 +1,10 @@
+{
+  "versionCode": 52,
+  "versionName": "1.6.9",
+  "apkUrl": "https://example.com/memories/app-debug.apk",
+  "releaseNotes": [
+    "清理页现在支持点开查看已删除照片，并可左右滑动切换上一张和下一张",
+    "清理页查看器底部新增白色半透明按钮，可直接恢复照片或彻底删除",
+    "恢复或彻底删除当前照片后，会自动跳转到下一张，最后一张处理完会自动关闭查看器"
+  ]
+}
